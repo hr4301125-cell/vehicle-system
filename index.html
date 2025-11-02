@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicle Rental System + Admin Portal</title>
+<style>
+/* (same styles as user provided, plus new admin modal styles) */
+*{margin:0;padding:0;font-family:Arial, sans-serif;box-sizing:border-box}
+body{background:#f5f5f5}
+header{background:#333;color:#fff;padding:15px;text-align:center}
+.vehicle-section,.booking-section{width:90%;margin:20px auto;background:#fff;padding:20px;border-radius:10px}
+h2{margin-bottom:10px}
+.vehicles{display:flex;gap:20px;flex-wrap:wrap}
+.card{width:220px;background:#fafafa;padding:15px;border-radius:10px;box-shadow:0 0 8px #bbb;text-align:center}
+.card img{width:100%;height:130px;object-fit:cover;border-radius:8px}
+.card button{margin-top:10px;background:#007bff;color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer}
+form{display:flex;flex-direction:column;gap:12px}
+input,button{padding:10px;border-radius:5px;border:1px solid #ddd}
+button{background:green;color:white;cursor:pointer;font-size:16px}
+#totalAmount{background:#eee;padding:10px;text-align:center;font-size:20px;border-radius:5px}
+
+/* ADMIN MODAL */
+#adminModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;padding:20px}
+#adminBox{background:white;width:95%;max-width:900px;max-height:90vh;overflow:auto;border-radius:12px;padding:20px}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+.deleteBtn{background:#d9534f;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer}
+.adminBtn{background:#ff9800;color:white;border:none;padding:10px 18px;border-radius:5px;cursor:pointer;margin:10px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🚗 Vehicle Rental System (Bike / Car)</h1>
+<button class="adminBtn" onclick="openAdmin()">Admin Portal</button>
+</header>
+
+<section class="vehicle-section">
+<h2>Available Vehicles</h2>
+<div class="vehicles">
+<div class="card"><img src="toyota-innova-hycross-641e.jpg"><h3>Innova Hycross</h3><p>Price: ₹1999/day</p><button onclick="selectVehicle('Innova Hycross',1999,'MH12AB1234')">Rent Now</button></div>
+<div class="card"><img src="profile1702885850.avif"><h3>Suzuki Access 125</h3><p>Price: ₹999/day</p><button onclick="selectVehicle('Suzuki Access 125',999,'MH14XY9087')">Rent Now</button></div>
+<div class="card"><img src="OIP (1).jpg"><h3>Hyundai Verna GT</h3><p>Price: ₹1599/day</p><button onclick="selectVehicle('Hyundai Verna GT',1599,'MH11GH7721')">Rent Now</button></div>
+<div class="card"><img src="stealth-black-000.avif"><h3>Royal Enfield</h3><p>Price: ₹1399/day</p><button onclick="selectVehicle('Royal Enfield',1399,'MH09RE4433')">Rent Now</button></div>
+<div class="card"><img src="OIP (2).jpg"><h3>Jawa Bobbor 42</h3><p>Price: ₹1399/day</p><button onclick="selectVehicle('Jawa Bobbor 42',1399,'MH10JB5544')">Rent Now</button></div>
+</div>
+</section>
+
+<section class="booking-section">
+<h2>Booking Form</h2>
+<form id="bookingForm">
+<label>Selected Vehicle:</label><input type="text" id="vehicleName" readonly>
+<label>Vehicle Number:</label><input type="text" id="vehicleNumber" readonly>
+<label>Price Per Day (₹):</label><input type="number" id="vehiclePrice" readonly>
+<label>Number of Days:</label><input type="number" id="days" min="1" required>
+<label>Your Name:</label><input type="text" id="customerName" required>
+<label>Phone Number:</label><input type="text" id="customerPhone" required>
+<h3 id="totalAmount">Total: ₹0</h3>
+<button type="submit">Confirm Booking</button>
+</form>
+</section>
+
+<!-- ✅ ADMIN PORTAL -->
+<div id="adminModal">
+<div id="adminBox">
+<h2>📋 All Bookings (Admin Panel)</h2>
+<button onclick="closeAdmin()" style="float:right;background:#333;color:white;padding:5px 10px;border-radius:5px">Close</button>
+<div id="adminData"></div>
+</div>
+</div>
+
+<script>
+let selectedVehicle = {};
+
+function selectVehicle(name, price, number) {
+document.getElementById("vehicleName").value = name;
+document.getElementById("vehiclePrice").value = price;
+document.getElementById("vehicleNumber").value = number;
+document.getElementById("totalAmount").innerText = `Total: ₹0`;
+}
+
+document.getElementById("days").addEventListener("input", function () {
+let price = document.getElementById("vehiclePrice").value;
+let days = document.getElementById("days").value;
+if (price && days) {
+let total = price * days;
+document.getElementById("totalAmount").innerText = `Total: ₹${total}`;
+}
+});
+
+document.getElementById("bookingForm").addEventListener("submit", function (e) {
+e.preventDefault();
+let booking = {
+vehicle: document.getElementById("vehicleName").value,
+number: document.getElementById("vehicleNumber").value,
+price: document.getElementById("vehiclePrice").value,
+days: document.getElementById("days").value,
+name: document.getElementById("customerName").value,
+phone: document.getElementById("customerPhone").value,
+total: document.getElementById("vehiclePrice").value * document.getElementById("days").value,
+};
+let list = JSON.parse(localStorage.getItem("rentals") || "[]");
+list.push(booking);
+localStorage.setItem("rentals", JSON.stringify(list));
+alert("✅ Booking Saved Successfully!");
+document.getElementById("bookingForm").reset();
+document.getElementById("totalAmount").innerText = "Total: ₹0";
+});
+
+/* ✅ ADMIN PORTAL FUNCTIONS */
+function openAdmin() {
+let pass = prompt("Enter Admin Password:");
+if (pass !== "admin123") {
+alert("❌ Wrong Password");
+return;
+}
+loadAdminData();
+document.getElementById("adminModal").style.display = "flex";
+}
+
+function closeAdmin() {
+document.getElementById("adminModal").style.display = "none";
+}
+
+function loadAdminData() {
+let list = JSON.parse(localStorage.getItem("rentals") || "[]");
+if (!list.length) {
+document.getElementById("adminData").innerHTML = "<p>No bookings found.</p>";
+return;
+}
+let html = `<table>
+<tr><th>Name</th><th>Vehicle</th><th>Number</th><th>Days</th><th>Total</th><th>Phone</th><th>Delete</th></tr>`;
+list.forEach((b, index) => {
+html += `<tr>
+<td>${b.name}</td>
+<td>${b.vehicle}</td>
+<td>${b.number}</td>
+<td>${b.days}</td>
+<td>₹${b.total}</td>
+<td>${b.phone}</td>
+<td><button class='deleteBtn' onclick='deleteBooking(${index})'>Delete</button></td>
+</tr>`;
+});
+html += `</table>`;
+document.getElementById("adminData").innerHTML = html;
+}
+
+function deleteBooking(i) {
+let list = JSON.parse(localStorage.getItem("rentals") || "[]");
+list.splice(i, 1);
+localStorage.setItem("rentals", JSON.stringify(list));
+loadAdminData();
+}
+</script>
+</body>
+</html>
